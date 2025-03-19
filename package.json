@@ -1,0 +1,63 @@
+{
+  "name": "hunter",
+  "version": "1.0.0",
+  "description": "TypeScript job portal scraper with scheduling, database features and web interface",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "build:web": "tsc -p web/tsconfig.json",
+    "build:all": "npm run build && npm run build:web",
+    "start": "node dist/index.js",
+    "start:web": "node dist/web/server/server.js",
+    "start:all": "node scripts/start-all.js",
+    "dev": "ts-node src/index.ts",
+    "dev:web": "nodemon --exec ts-node web/server/server.ts",
+    "dev:all": "concurrently \"npm run dev\" \"npm run dev:web\"",
+    "lint": "eslint . --ext .ts",
+    "format": "prettier --write .",
+    "test": "jest"
+  },
+  "keywords": [
+    "typescript",
+    "web-scraping",
+    "jobs",
+    "puppeteer",
+    "automation",
+    "scheduler",
+    "express",
+    "website"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "csv-parser": "^3.0.0",
+    "csv-writer": "^1.6.0",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "node-cron": "^3.0.2",
+    "node-telegram-bot-api": "^0.61.0",
+    "puppeteer": "^19.7.2",
+    "winston": "^3.8.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.13",
+    "@types/express": "^4.17.17",
+    "@types/jest": "^29.5.0",
+    "@types/node": "^18.15.11",
+    "@types/node-cron": "^3.0.7",
+    "@types/node-telegram-bot-api": "^0.61.6",
+    "@types/puppeteer": "^7.0.4",
+    "@typescript-eslint/eslint-plugin": "^5.57.0",
+    "@typescript-eslint/parser": "^5.57.0",
+    "eslint": "^8.37.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "jest": "^29.5.0",
+    "nodemon": "^2.0.22",
+    "prettier": "^2.8.7",
+    "ts-jest": "^29.1.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.3"
+  }
+}
