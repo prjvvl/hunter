@@ -12,8 +12,12 @@ let botInstance: TelegramBot | null = null;
  * @returns Telegram bot instance
  */
 export function initTelegramBot(): TelegramBot | null {
-  if (!config.telegram.botToken || !config.telegram.channelId) {
-    logger.warn('Telegram bot token or channel ID not provided');
+  if (
+    !config.telegram.botToken ||
+    !config.telegram.primaryChannelId ||
+    !config.telegram.secondaryChannelId
+  ) {
+    logger.warn('Telegram bot token or channel IDs not provided');
     return null;
   }
 
@@ -36,14 +40,20 @@ export function initTelegramBot(): TelegramBot | null {
  * @param message Message to send
  * @returns Promise that resolves when message is sent
  */
-export async function sendTelegramMessage(message: string): Promise<boolean> {
+export async function sendTelegramMessage(
+  message: string,
+  channel: 'primary' | 'secondary'
+): Promise<boolean> {
   const bot = initTelegramBot();
   if (!bot) {
     return false;
   }
 
+  const channelId =
+    channel === 'primary' ? config.telegram.primaryChannelId : config.telegram.secondaryChannelId;
+
   try {
-    await bot.sendMessage(config.telegram.channelId, message, {
+    await bot.sendMessage(channelId, message, {
       parse_mode: 'HTML',
       disable_web_page_preview: true,
     });
@@ -60,7 +70,11 @@ export async function sendTelegramMessage(message: string): Promise<boolean> {
  * @param caption Caption for the file
  * @returns Promise that resolves when file is sent
  */
-export async function sendTelegramFile(filePath: string, caption: string = ''): Promise<boolean> {
+export async function sendTelegramFile(
+  filePath: string,
+  caption: string = '',
+  channel: 'primary' | 'secondary'
+): Promise<boolean> {
   const bot = initTelegramBot();
   if (!bot) {
     return false;
@@ -73,8 +87,11 @@ export async function sendTelegramFile(filePath: string, caption: string = ''): 
       return false;
     }
 
+    const channelId =
+      channel === 'primary' ? config.telegram.primaryChannelId : config.telegram.secondaryChannelId;
+
     // Send the file
-    await bot.sendDocument(config.telegram.channelId, filePath, {
+    await bot.sendDocument(channelId, filePath, {
       caption: caption.substring(0, 1024), // Telegram limits caption to 1024 chars
       parse_mode: 'HTML',
     });
@@ -88,7 +105,6 @@ export async function sendTelegramFile(filePath: string, caption: string = ''): 
 /**
  * Send a summary of new jobs to Telegram
  * @param jobs Array of jobs to summarize
- * @param isUpdate Whether this is an update or initial scrape
  * @returns Promise that resolves when summary is sent
  */
 export async function sendJobsSummary(jobs: Job[]): Promise<boolean> {
@@ -96,18 +112,37 @@ export async function sendJobsSummary(jobs: Job[]): Promise<boolean> {
     return false;
   }
 
-  const message = `
-<b>📊 Report: ${new Date().toLocaleString()}</b>
+  // Group jobs by company
+  const groupedJobs = jobs.reduce((acc: Record<string, Job[]>, job: Job) => {
+    if (!acc[job.company]) {
+      acc[job.company] = [];
+    }
+    acc[job.company].push(job);
+    return acc;
+  }, {});
 
-${jobs.length} new openings across ${new Set(jobs.map((job) => job.company)).size} companies.
+  // Build the message with the grouped jobs
+  let messageContent = `<b>📊 Report: ${new Date().toLocaleString()}</b>`;
 
-${jobs
-  .slice(0, 20)
-  .map((job) => job.toSummary())
-  .join('\n\n')}
+  // Get the first 20 companies (or fewer if there aren't that many)
+  const companies = Object.keys(groupedJobs).slice(0, 20);
+  let totalJobsShown = 0;
 
-${jobs.length > 20 ? `\n...and ${jobs.length - 20} more.\n` : ''}
-  `.trim();
+  companies.forEach((company) => {
+    messageContent += `\n\n${'-'.repeat(Math.max(0, 25 - company.length))} <b>#${company}</b>\n`;
 
-  return await sendTelegramMessage(message);
+    // Add job titles and locations for this company
+    groupedJobs[company].forEach((job) => {
+      messageContent += `\n${job.toSummary()}\n`;
+      totalJobsShown++;
+    });
+  });
+
+  // Calculate total number of remaining jobs
+  const remainingJobs = jobs.length - totalJobsShown;
+  if (remainingJobs > 0) {
+    messageContent += `\n...and ${remainingJobs} more.\n`;
+  }
+
+  return await sendTelegramMessage(messageContent.trim(), 'primary');
 }

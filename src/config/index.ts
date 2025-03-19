@@ -23,7 +23,8 @@ export interface Config {
   tasks: PortalConfig[];
   telegram: {
     botToken: string;
-    channelId: string;
+    primaryChannelId: string;
+    secondaryChannelId: string;
   };
   outputDir: string;
   logDir: string;
@@ -41,7 +42,12 @@ const config: Config = {
   browser: {
     headless: HEADLESS,
     defaultViewport: null,
-    args: ['--start-maximized', '--disable-notifications'],
+    args: [
+      '--start-maximized',
+      '--disable-notifications',
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+    ],
     ignoreHTTPSErrors: true,
   },
   tasks: [
@@ -54,7 +60,8 @@ const config: Config = {
   ],
   telegram: {
     botToken: process.env.TELEGRAM_BOT_TOKEN || '',
-    channelId: process.env.TELEGRAM_CHANNEL_ID || '',
+    primaryChannelId: process.env.TELEGRAM_PRIMARY_CHANNEL_ID || '',
+    secondaryChannelId: process.env.TELEGRAM_SECONDARY_CHANNEL_ID || '',
   },
   outputDir: OUTPUT_DIR,
   logDir: LOG_DIR,

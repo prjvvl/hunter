@@ -39,7 +39,9 @@ export async function scrapeJobs(): Promise<void> {
         logger.info(`Found ${jobs.length} jobs from ${task.name}`);
         allJobs = [...allJobs, ...jobs];
       } catch (error) {
-        logger.error(`Error scraping ${task.name} :: ${task.type}`, { error });
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        await sendTelegramMessage(`⚠️ Error scraping ${task.name}: ${errorMessage}`, 'secondary');
+        logger.error(`Error scraping ${task.name} :: ${task.type}`, errorMessage);
       }
     }
 
@@ -53,14 +55,21 @@ export async function scrapeJobs(): Promise<void> {
 
     if (newJobs.length > 0) {
       await sendJobsSummary(newJobs);
+      await sendTelegramMessage(
+        `✅ Found ${newJobs.length} new openings across ${
+          new Set(newJobs.map((job) => job.company)).size
+        } companies.`,
+        'secondary'
+      );
     } else {
       logger.info('No jobs found!');
-      await sendTelegramMessage('❌ No new openings found');
+      await sendTelegramMessage('❌ No new openings found', 'secondary');
     }
-
     logger.info('Job scraping completed successfully. Total new jobs found:', newJobs.length);
   } catch (error) {
-    logger.error('An error occurred during the scraping process', { error });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    await sendTelegramMessage(`⚠️ Error: ${errorMessage}`, 'secondary');
+    logger.error('An error occurred during the scraping process', errorMessage);
     throw error;
   }
 }
@@ -77,7 +86,11 @@ async function main(): Promise<void> {
   `);
 
   try {
+    await sendTelegramMessage(`🚀 Hunting Started`, 'secondary');
+
     await scrapeJobs(); // Initial scraping
+
+    await sendTelegramMessage(`🔄 Hunting Scheduled for ${getScheduleDescription()}`, 'secondary');
 
     const schedulerInitialized = initScheduler(async () => {
       await scrapeJobs();

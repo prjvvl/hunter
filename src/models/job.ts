@@ -87,12 +87,9 @@ export class Job implements JobData {
    */
   toSummary(): string {
     const details = [
-      this.title ? `🔍 <b>${this.title}</b>` : '',
-      this.company ? `🏢 <i>${this.company}</i>` : '',
+      this.title ? `<b><a href="${this.link}">${this.title}</a></b>` : '',
       this.location ? `📍 ${this.location}` : '',
       this.postedDate ? `📅 ${this.postedDate}` : '',
-      this.experience ? `⏳ ${this.experience}` : '',
-      this.link ? `🔗 <a href="${this.link}">Link</a>` : '',
     ];
     return details.filter(Boolean).join('\n');
   }
