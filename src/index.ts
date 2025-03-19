@@ -5,7 +5,7 @@ import { ensureDirectoryExists, getTimestampString } from './utils/helper';
 import { closeBrowser, setupBrowser } from './services/browser';
 import { fetchNewJobOpenings, updateJobsDatabase } from './services/csv-database';
 import { sendJobsSummary, sendTelegramMessage } from './services/telegram';
-import { AmazonPortal } from './portals';
+import { AmazonPortal, GooglePortal } from './portals';
 import { BasePortal } from './portals/base-portal';
 import { getScheduleDescription, initScheduler } from './services/scheduler';
 
@@ -27,7 +27,10 @@ export async function scrapeJobs(): Promise<void> {
       let portal: BasePortal | null = null;
       switch (task.type) {
         case 'amazon':
-          portal = new AmazonPortal(browser, task.name, task.url);
+          portal = new AmazonPortal(browser, task);
+          break;
+        case 'google':
+          portal = new GooglePortal(browser, task);
           break;
         default:
           throw new Error(`Invaild portal type: ${task.type}`);
@@ -40,8 +43,15 @@ export async function scrapeJobs(): Promise<void> {
         allJobs = [...allJobs, ...jobs];
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        await sendTelegramMessage(`⚠️ Error scraping ${task.name}: ${errorMessage}`, 'secondary');
-        logger.error(`Error scraping ${task.name} :: ${task.type}`, errorMessage);
+        logger.error(`Error scraping ${task.name} :: ${task.type}`, { errorMessage });
+        const safeErrorMessage = errorMessage
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
+        await sendTelegramMessage(
+          `⚠️ Error scraping ${task.name}: ${safeErrorMessage}`,
+          'secondary'
+        );
       }
     }
 
@@ -69,7 +79,7 @@ export async function scrapeJobs(): Promise<void> {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     await sendTelegramMessage(`⚠️ Error: ${errorMessage}`, 'secondary');
-    logger.error('An error occurred during the scraping process', errorMessage);
+    logger.error('An error occurred during the scraping process', { errorMessage });
     throw error;
   }
 }

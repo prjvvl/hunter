@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-export type portalType = 'amazon';
+export type portalType = 'amazon' | 'google';
 
 // Portal configuration
 export interface PortalConfig {
@@ -10,6 +10,7 @@ export interface PortalConfig {
   url: string;
   scrape: boolean;
   type: portalType;
+  source?: string;
 }
 
 // Global configuration
@@ -56,6 +57,13 @@ const config: Config = {
       type: 'amazon',
       url: 'https://www.amazon.jobs/en-gb/location/bangalore-india?offset=0&result_limit=10&sort=recent&category%5B%5D=software-development&job_type%5B%5D=Full-Time&city%5B%5D=Bengaluru&distanceType=Mi&radius=24km&location%5B%5D=bangalore-india&latitude=&longitude=&loc_group_id=&loc_query=&base_query=&city=&country=&region=&county=&query_options=&',
       scrape: true,
+    },
+    {
+      name: 'Google - SDE Bangalore',
+      type: 'google',
+      url: 'https://www.google.com/about/careers/applications/jobs/results/?location=Bangalore%20India&employment_type=FULL_TIME&q=%22Software%20Engineer%22&target_level=EARLY&sort_by=date',
+      scrape: true,
+      source: 'https://www.google.com/about/careers/applications/',
     },
   ],
   telegram: {

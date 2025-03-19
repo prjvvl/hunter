@@ -4,26 +4,23 @@ import { Job } from '../models/job';
 import logger from '../utils/logger';
 import { createPage, navigateToUrl } from '../services/browser';
 import { randomDelay, sleep } from '../utils/helper';
+import { PortalConfig } from '../config';
 
 export abstract class BasePortal {
   protected browser: Browser;
-  protected name: string;
-  protected url: string;
-  protected jobCount: number;
+  protected config: PortalConfig;
 
   /**
    * Create a new portal scraper instance
    * @param browser Puppeteer browser instance
    */
-  constructor(browser: Browser) {
+  constructor(browser: Browser, config: PortalConfig) {
     if (this.constructor === BasePortal) {
       throw new Error('BasePortal is an abstract class and cannot be instantiated directly');
     }
 
     this.browser = browser;
-    this.name = 'Base Portal';
-    this.url = '';
-    this.jobCount = 0;
+    this.config = config;
   }
 
   /**
@@ -40,12 +37,12 @@ export abstract class BasePortal {
     const page = await createPage(this.browser);
 
     try {
-      logger.info(`Opening portal: ${this.name} (${this.url})`);
-      await navigateToUrl(page, this.url);
+      logger.info(`Opening portal: ${this.config.name} (${this.config.url})`);
+      await navigateToUrl(page, this.config.url);
       return page;
     } catch (error) {
       await page.close();
-      throw new Error(`Failed to open ${this.name} portal: ${error}`);
+      throw new Error(`Failed to open ${this.config.name} portal: ${error}`);
     }
   }
 

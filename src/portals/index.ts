@@ -1,3 +1,4 @@
 import { AmazonPortal } from './amazon';
+import { GooglePortal } from './google';
 
-export { AmazonPortal };
+export { AmazonPortal, GooglePortal };
