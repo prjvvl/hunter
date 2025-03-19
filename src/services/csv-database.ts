@@ -12,6 +12,7 @@ import { ensureDirectoryExists } from '../utils/helper';
 ensureDirectoryExists(path.dirname(config.outputDir));
 
 const csvDatabasePath = path.join(config.outputDir, 'jobs.csv');
+export const newJobsPath = path.join(config.outputDir, 'newly_added_jobs.csv');
 
 // Define the headers for the CSV file
 const headers = [
@@ -80,10 +81,13 @@ export async function loadJobsFromDatabase(): Promise<Job[]> {
  * @param jobs Array of jobs to save
  * @returns Promise that resolves when jobs are saved
  */
-export async function saveJobsToDatabase(jobs: Job[]): Promise<void> {
+export async function saveJobsToDatabase(
+  jobs: Job[],
+  path: string = csvDatabasePath
+): Promise<void> {
   // Create CSV writer
   const csvWriter = createObjectCsvWriter({
-    path: csvDatabasePath,
+    path: path,
     header: headers,
   });
 
@@ -206,6 +210,9 @@ export async function fetchNewJobOpenings(scrapedJobs: Job[]): Promise<Job[]> {
 
   // Save updated jobs to database
   await saveJobsToDatabase(updatedJobs);
+
+  // Export newly added jobs to a separate CSV file
+  await exportJobsToCSV(newJobs, newJobsPath);
 
   logger.info(`Database updated: ${addedCount} jobs added, ${updatedCount} jobs updated`);
 

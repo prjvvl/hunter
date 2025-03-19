@@ -4,6 +4,7 @@ import fs from 'fs';
 import config from '../config';
 import logger from '../utils/logger';
 import { Job } from '../models/job';
+import { newJobsPath } from './csv-database';
 
 let botInstance: TelegramBot | null = null;
 
@@ -124,24 +125,40 @@ export async function sendJobsSummary(jobs: Job[]): Promise<boolean> {
   // Build the message with the grouped jobs
   let messageContent = `<b>📊 Report: ${new Date().toLocaleString()}</b>`;
 
-  // Get the first 20 companies (or fewer if there aren't that many)
-  const companies = Object.keys(groupedJobs).slice(0, 20);
+  const companies = Object.keys(groupedJobs);
+  const maxJobsToShow = 25;
   let totalJobsShown = 0;
 
-  companies.forEach((company) => {
+  let shouldBreak = false;
+
+  // Use a standard for loop instead of forEach so we can exit early
+  for (let i = 0; i < companies.length; i++) {
+    const company = companies[i];
     messageContent += `\n\n${'-'.repeat(Math.max(0, 25 - company.length))} <b>#${company}</b>\n`;
 
-    // Add job titles and locations for this company
-    groupedJobs[company].forEach((job) => {
-      messageContent += `\n${job.toSummary()}\n`;
+    // Use a standard for loop for jobs too
+    const companyJobs = groupedJobs[company];
+    for (let j = 0; j < companyJobs.length; j++) {
+      messageContent += `\n${companyJobs[j].toSummary()}\n`;
       totalJobsShown++;
-    });
-  });
+
+      if (totalJobsShown >= maxJobsToShow) {
+        shouldBreak = true;
+        break;
+      }
+    }
+
+    if (shouldBreak) {
+      break;
+    }
+  }
 
   // Calculate total number of remaining jobs
   const remainingJobs = jobs.length - totalJobsShown;
   if (remainingJobs > 0) {
     messageContent += `\n...and ${remainingJobs} more.\n`;
+    await sendTelegramMessage(messageContent.trim(), 'primary');
+    return await sendTelegramFile(newJobsPath, 'Newly added openings', 'primary');
   }
 
   return await sendTelegramMessage(messageContent.trim(), 'primary');

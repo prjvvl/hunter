@@ -1,4 +1,3 @@
-// src/portals/google.ts - Google-specific portal
 import { Browser, Page } from 'puppeteer';
 import { Job } from '../models/job';
 import { BasePortal } from './base-portal';
