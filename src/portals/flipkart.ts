@@ -6,13 +6,42 @@ import { sleep } from '../utils/helper';
 import { PortalConfig } from '../config';
 import { sendTelegramMessage } from '../services/telegram';
 
+interface SearchParams {
+  paginationStartNo: number;
+  selectedCall: string;
+  sortCriteria: {
+    name: string;
+    isAscending: boolean;
+  };
+  facetSelectionString: {
+    Location: string[];
+    Function: string[];
+  };
+  anyOfTheseWords: string;
+  paginationSizeNo?: number; // Optional parameter for controlling page size
+}
+
+interface ApiResponse {
+  code: number;
+  data: {
+    data: any[];
+    totalCount: number;
+    hasMoreData: boolean;
+  };
+  error?: string;
+}
+
 export class FlipkartPortal extends BasePortal {
   private apiUrl: string;
-  private searchParams: any;
+  private searchParams: SearchParams;
+  private pageSize: number;
+  private maxPages: number;
 
   constructor(browser: Browser, config: PortalConfig) {
     super(browser, config);
     this.apiUrl = 'https://public.zwayam.com/jobs/search';
+    this.pageSize = 10; // Default page size of 10
+    this.maxPages = 5; // Hard limit of 5 API calls
 
     this.searchParams = {
       paginationStartNo: 0,
@@ -26,6 +55,7 @@ export class FlipkartPortal extends BasePortal {
         Function: ['Technology'],
       },
       anyOfTheseWords: 'Software Engineer',
+      paginationSizeNo: this.pageSize,
     };
   }
 
@@ -35,14 +65,68 @@ export class FlipkartPortal extends BasePortal {
    */
   async scrape(): Promise<Job[]> {
     const page = await this.openPortal();
+    let allJobs: Job[] = [];
+
     try {
       logger.info(`Scraping ${this.config.name}...`);
       await sleep(this.config.cooldown || 0);
 
-      logger.info(`Fetching jobs from ${this.config.name} API...`);
-      const jobs = await this.fetchJobsFromApi(page);
-      logger.info(`Scraped a total of ${jobs.length} jobs from ${this.config.name}`);
-      return jobs;
+      logger.info(`Fetching jobs from ${this.config.name} API with pagination...`);
+
+      let currentPage = 0;
+      let hasMoreData = true;
+      let totalJobs = 0;
+      let apiCallCount = 0;
+
+      // Fetch data page by page until hasMoreData becomes false or max API calls reached
+      while (hasMoreData && apiCallCount < this.maxPages) {
+        // Update pagination start number
+        this.searchParams.paginationStartNo = currentPage * this.pageSize;
+
+        logger.info(
+          `Making API call #${apiCallCount + 1} (items ${this.searchParams.paginationStartNo} to ${
+            this.searchParams.paginationStartNo + this.pageSize - 1
+          })...`
+        );
+
+        // Fetch job data for current page
+        const response = await this.fetchJobsFromApi(page);
+        apiCallCount++; // Increment API call counter
+
+        // Process the jobs from this page
+        const pageJobs = this.processApiResponse(response);
+        allJobs = allJobs.concat(pageJobs);
+
+        // Update pagination information
+        totalJobs = response.data.totalCount;
+        hasMoreData = response.data.hasMoreData && pageJobs.length > 0;
+
+        // Log progress
+        logger.info(
+          `API call #${apiCallCount}: Retrieved ${pageJobs.length} jobs. Total so far: ${allJobs.length}/${totalJobs}`
+        );
+
+        // Increment page counter
+        currentPage++;
+
+        // Add a short delay between requests to avoid rate limiting
+        if (hasMoreData && apiCallCount < this.maxPages) {
+          await sleep(1000); // 1 second delay between API requests
+        }
+      }
+
+      // Log final results with reason for stopping
+      if (!hasMoreData) {
+        logger.info(
+          `Scraped a total of ${allJobs.length}/${totalJobs} jobs from ${this.config.name} (no more data available)`
+        );
+      } else if (apiCallCount >= this.maxPages) {
+        logger.info(
+          `Scraped a total of ${allJobs.length}/${totalJobs} jobs from ${this.config.name} (reached maximum of ${this.maxPages} API calls)`
+        );
+      }
+
+      return allJobs;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error(`Error scraping ${this.config.name}`, { errorMessage });
@@ -63,10 +147,10 @@ export class FlipkartPortal extends BasePortal {
   /**
    * Fetch jobs from Flipkart's API
    * @param page Puppeteer page
-   * @returns Array of job objects
+   * @returns API response object
    */
-  private async fetchJobsFromApi(page: Page): Promise<Job[]> {
-    // Construct form data boundary exactly as in the example
+  private async fetchJobsFromApi(page: Page): Promise<ApiResponse> {
+    // Construct form data boundary
     const boundary = '----WebKitFormBoundaryrpzWElwWmtRsWXbA';
     let formData = '';
     formData += `${boundary}\r\n`;
@@ -127,8 +211,7 @@ export class FlipkartPortal extends BasePortal {
       throw new Error(`Invalid API response: ${JSON.stringify(response).substring(0, 100)}...`);
     }
 
-    // Process the API response
-    return this.processApiResponse(response);
+    return response as ApiResponse;
   }
 
   /**
@@ -136,7 +219,7 @@ export class FlipkartPortal extends BasePortal {
    * @param response API response object
    * @returns Array of job objects
    */
-  private processApiResponse(response: any): Job[] {
+  private processApiResponse(response: ApiResponse): Job[] {
     try {
       // Check the correct response structure based on the actual API response
       if (
@@ -211,7 +294,7 @@ export class FlipkartPortal extends BasePortal {
             contact: hiringManagerEmail,
           });
         })
-        .filter(Boolean);
+        .filter((job) => job !== null);
     } catch (error) {
       logger.error(`Error processing API response for ${this.config.name}`, {
         error: error instanceof Error ? error.message : String(error),
