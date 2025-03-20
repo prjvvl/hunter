@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-export type portalType = 'amazon' | 'google' | 'microsoft';
+export type portalType = 'amazon' | 'google' | 'microsoft' | 'flipkart';
 
 // Portal configuration
 export interface PortalConfig {
@@ -33,7 +33,7 @@ export interface Config {
   scheduleCron: string;
 }
 
-const HEADLESS: boolean = false;
+const HEADLESS: boolean = true;
 const OUTPUT_DIR: string = './data';
 const LOG_DIR: string = './logs';
 const LOG_LEVEL: string = 'info';
@@ -72,6 +72,13 @@ const config: Config = {
       url: 'https://jobs.careers.microsoft.com/global/en/search?q=software%20engineer&lc=Bangalore%2C%20Karnataka%2C%20India&p=Software%20Engineering&d=Software%20Engineering&rt=Individual%20Contributor&et=Full-Time&l=en_us&pg=1&pgSz=20&o=Recent&flt=true',
       scrape: true,
       cooldown: 5000,
+    },
+    {
+      name: 'Flipkart - SDE Bangalore',
+      type: 'flipkart',
+      url: 'https://www.flipkartcareers.com/#!/joblist',
+      scrape: true,
+      cooldown: 1000,
     },
   ],
   telegram: {

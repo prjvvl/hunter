@@ -5,7 +5,7 @@ import { ensureDirectoryExists } from './utils/helper';
 import { closeBrowser, setupBrowser } from './services/browser';
 import { fetchNewJobOpenings } from './services/csv-database';
 import { sendJobsSummary, sendTelegramMessage } from './services/telegram';
-import { AmazonPortal, GooglePortal, MicrosoftPortal } from './portals';
+import { AmazonPortal, FlipkartPortal, GooglePortal, MicrosoftPortal } from './portals';
 import { BasePortal } from './portals/base-portal';
 import { getScheduleDescription, initScheduler } from './services/scheduler';
 
@@ -34,6 +34,9 @@ export async function scrapeJobs(): Promise<void> {
           break;
         case 'microsoft':
           portal = new MicrosoftPortal(browser, task);
+          break;
+        case 'flipkart':
+          portal = new FlipkartPortal(browser, task);
           break;
         default:
           throw new Error(`Invaild portal type: ${task.type}`);

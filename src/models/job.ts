@@ -12,6 +12,7 @@ export interface JobData {
   scrapedAt?: string;
   lastUpdated?: string;
   uniqueKey?: string;
+  contact?: string;
   [key: string]: any;
 }
 
@@ -29,6 +30,7 @@ export class Job implements JobData {
   scrapedAt: string;
   lastUpdated: string;
   uniqueKey: string;
+  contact: string;
 
   /**
    * Create a new Job instance
@@ -48,6 +50,7 @@ export class Job implements JobData {
     this.scrapedAt = data.scrapedAt || new Date().toISOString();
     this.lastUpdated = data.lastUpdated || this.scrapedAt;
     this.uniqueKey = (this.company + this.title + this.jobId + this.link).trim();
+    this.contact = data.contact || '';
   }
 
   /**
@@ -78,6 +81,7 @@ export class Job implements JobData {
       scrapedAt: this.scrapedAt,
       lastUpdated: this.lastUpdated,
       uniqueKey: this.uniqueKey,
+      contact: this.contact,
     };
   }
 
@@ -90,6 +94,7 @@ export class Job implements JobData {
       this.title ? `<b><a href="${this.link}">${this.title}</a></b>` : '',
       this.location ? `📍 ${this.location}` : '',
       this.postedDate ? `📅 ${this.postedDate}` : '',
+      this.contact ? `📧 ${this.contact}` : '',
     ];
     return details.filter(Boolean).join('\n');
   }
