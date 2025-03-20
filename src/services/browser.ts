@@ -41,6 +41,10 @@ export async function closeBrowser(browser?: Browser): Promise<void> {
 export async function createPage(browser: Browser): Promise<Page> {
   const page = await browser.newPage();
 
+  await page.setUserAgent(
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+  );
+
   // Set viewport and timeout
   await page.setViewport({ width: 1366, height: 768 });
   page.setDefaultNavigationTimeout(30000);

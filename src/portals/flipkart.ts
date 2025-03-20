@@ -66,8 +66,6 @@ export class FlipkartPortal extends BasePortal {
    * @returns Array of job objects
    */
   private async fetchJobsFromApi(page: Page): Promise<Job[]> {
-    logger.info(`Fetching jobs from ${this.config.name} API with parameters:`, this.searchParams);
-
     // Construct form data boundary exactly as in the example
     const boundary = '----WebKitFormBoundaryrpzWElwWmtRsWXbA';
     let formData = '';
