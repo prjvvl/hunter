@@ -1,11 +1,11 @@
 import { Job } from './models/job';
 import config from './config';
 import logger from './utils/logger';
-import { ensureDirectoryExists, getTimestampString } from './utils/helper';
+import { ensureDirectoryExists } from './utils/helper';
 import { closeBrowser, setupBrowser } from './services/browser';
-import { fetchNewJobOpenings, updateJobsDatabase } from './services/csv-database';
+import { fetchNewJobOpenings } from './services/csv-database';
 import { sendJobsSummary, sendTelegramMessage } from './services/telegram';
-import { AmazonPortal, GooglePortal } from './portals';
+import { AmazonPortal, GooglePortal, MicrosoftPortal } from './portals';
 import { BasePortal } from './portals/base-portal';
 import { getScheduleDescription, initScheduler } from './services/scheduler';
 
@@ -32,6 +32,9 @@ export async function scrapeJobs(): Promise<void> {
         case 'google':
           portal = new GooglePortal(browser, task);
           break;
+        case 'microsoft':
+          portal = new MicrosoftPortal(browser, task);
+          break;
         default:
           throw new Error(`Invaild portal type: ${task.type}`);
       }
@@ -40,6 +43,9 @@ export async function scrapeJobs(): Promise<void> {
         logger.info(`Starting ${task.name} portal scraper...`);
         const jobs = await portal.scrape();
         logger.info(`Found ${jobs.length} jobs from ${task.name}`);
+        if (jobs.length === 0) {
+          await sendTelegramMessage(`⚠️ Scrapping failed for ${task.name}`, 'secondary');
+        }
         allJobs = [...allJobs, ...jobs];
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);

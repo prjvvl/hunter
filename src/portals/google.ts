@@ -3,9 +3,8 @@ import { Job } from '../models/job';
 import { BasePortal } from './base-portal';
 import logger from '../utils/logger';
 import { waitForSelector } from '../services/browser';
-import { cleanText } from '../utils/helper';
+import { cleanText, sleep } from '../utils/helper';
 import { PortalConfig } from '../config';
-import { send } from 'process';
 import { sendTelegramMessage } from '../services/telegram';
 
 export class GooglePortal extends BasePortal {
@@ -21,6 +20,7 @@ export class GooglePortal extends BasePortal {
     const page = await this.openPortal();
     try {
       logger.info(`Scraping ${this.config.name}...`);
+      await sleep(this.config.cooldown || 0);
       // Wait for share buttons to load
       await waitForSelector(page, 'button[aria-label^="Share"]');
       // Extract jobs from current page
@@ -68,11 +68,10 @@ export class GooglePortal extends BasePortal {
           // Find "Learn more" link
           const learnMoreLink = jobCard.querySelector('a[aria-label^="Learn more about"]');
           const linkHref = learnMoreLink ? learnMoreLink.getAttribute('href') : '';
-          const source = config.source || `https://${window.location.hostname}/`;
           const link = linkHref
             ? linkHref.startsWith('http')
               ? linkHref
-              : `${source}${linkHref}`
+              : `https://www.google.com/about/careers/applications/${linkHref}`
             : '';
 
           // Check if both title and link are present

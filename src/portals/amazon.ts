@@ -32,6 +32,7 @@ export class AmazonPortal extends BasePortal {
     const page = await this.openPortal();
     try {
       logger.info(`Scraping ${this.config.name}...`);
+      await sleep(this.config.cooldown || 0);
       // Wait for job containers to load
       await waitForSelector(page, this.selectors.jobContainer);
       // Extract jobs from current page
@@ -71,7 +72,6 @@ export class AmazonPortal extends BasePortal {
           const jobId = container.querySelector(selectors.jobId)?.textContent || '';
           const postedDate = container.querySelector(selectors.postedDate)?.textContent || '';
           const description = container.querySelector(selectors.description)?.textContent || '';
-          const source = config.source || `https://${window.location.hostname}`;
           const link = container.querySelector(selectors.link)?.getAttribute('href') || '';
           return {
             title,
@@ -79,8 +79,7 @@ export class AmazonPortal extends BasePortal {
             jobId,
             postedDate,
             description,
-            source,
-            link: link.startsWith('http') ? link : `${source}${link}`,
+            link: link.startsWith('http') ? link : `https://www.amazon.jobs${link}`,
           };
         });
       },

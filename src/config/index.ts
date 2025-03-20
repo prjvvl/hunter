@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-export type portalType = 'amazon' | 'google';
+export type portalType = 'amazon' | 'google' | 'microsoft';
 
 // Portal configuration
 export interface PortalConfig {
@@ -10,7 +10,7 @@ export interface PortalConfig {
   url: string;
   scrape: boolean;
   type: portalType;
-  source?: string;
+  cooldown?: number; // In milliseconds
 }
 
 // Global configuration
@@ -33,7 +33,7 @@ export interface Config {
   scheduleCron: string;
 }
 
-const HEADLESS: boolean = true;
+const HEADLESS: boolean = false;
 const OUTPUT_DIR: string = './data';
 const LOG_DIR: string = './logs';
 const LOG_LEVEL: string = 'info';
@@ -57,13 +57,21 @@ const config: Config = {
       type: 'amazon',
       url: 'https://www.amazon.jobs/en-gb/location/bangalore-india?offset=0&result_limit=10&sort=recent&category%5B%5D=software-development&job_type%5B%5D=Full-Time&city%5B%5D=Bengaluru&distanceType=Mi&radius=24km&location%5B%5D=bangalore-india&latitude=&longitude=&loc_group_id=&loc_query=&base_query=&city=&country=&region=&county=&query_options=&',
       scrape: true,
+      cooldown: 2000,
     },
     {
       name: 'Google - SDE Bangalore',
       type: 'google',
       url: 'https://www.google.com/about/careers/applications/jobs/results/?location=Bangalore%20India&employment_type=FULL_TIME&q=%22Software%20Engineer%22&target_level=EARLY&sort_by=date',
       scrape: true,
-      source: 'https://www.google.com/about/careers/applications/',
+      cooldown: 2000,
+    },
+    {
+      name: 'Microsoft - SDE Bangalore',
+      type: 'microsoft',
+      url: 'https://jobs.careers.microsoft.com/global/en/search?q=software%20engineer&lc=Bangalore%2C%20Karnataka%2C%20India&p=Software%20Engineering&d=Software%20Engineering&rt=Individual%20Contributor&et=Full-Time&l=en_us&pg=1&pgSz=20&o=Recent&flt=true',
+      scrape: true,
+      cooldown: 5000,
     },
   ],
   telegram: {
