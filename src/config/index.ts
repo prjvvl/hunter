@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-export type portalType = 'amazon' | 'google' | 'microsoft' | 'flipkart';
+export type portalType = 'amazon' | 'google' | 'microsoft' | 'flipkart' | 'atlassian';
 
 // Portal configuration
 export interface PortalConfig {
@@ -79,6 +79,13 @@ const config: Config = {
       url: 'https://www.flipkartcareers.com/#!/joblist',
       scrape: true,
       cooldown: 1000,
+    },
+    {
+      name: 'Atlassian - SDE Bangalore',
+      type: 'atlassian',
+      url: 'https://www.atlassian.com/company/careers/all-jobs?team=Engineering&location=India&search=software%20engineer',
+      scrape: true,
+      cooldown: 2000,
     },
   ],
   telegram: {
