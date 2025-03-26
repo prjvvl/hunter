@@ -4,6 +4,7 @@ import { MicrosoftPortal } from './microsoft';
 import { FlipkartPortal } from './flipkart';
 import { AtlassianPortal } from './atlassian';
 import { SalesforcePortal } from './salesforce';
+import { NvidiaPortal } from './nvidia';
 
 export {
   AmazonPortal,
@@ -12,4 +13,5 @@ export {
   FlipkartPortal,
   AtlassianPortal,
   SalesforcePortal,
+  NvidiaPortal,
 };

@@ -12,6 +12,7 @@ import {
   MicrosoftPortal,
   AtlassianPortal,
   SalesforcePortal,
+  NvidiaPortal,
 } from './portals';
 import { BasePortal } from './portals/base-portal';
 import { getScheduleDescription, initScheduler } from './services/scheduler';
@@ -50,6 +51,9 @@ export async function scrapeJobs(): Promise<void> {
           break;
         case 'salesforce':
           portal = new SalesforcePortal(browser, task);
+          break;
+        case 'nvidia':
+          portal = new NvidiaPortal(browser, task);
           break;
         default:
           throw new Error(`Invalid portal type: ${task.type}`);

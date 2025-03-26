@@ -8,7 +8,8 @@ export type portalType =
   | 'microsoft'
   | 'flipkart'
   | 'atlassian'
-  | 'salesforce';
+  | 'salesforce'
+  | 'nvidia';
 
 // Portal configuration
 export interface PortalConfig {
@@ -97,6 +98,13 @@ const config: Config = {
       name: 'Salesforce - SDE Bangalore',
       type: 'salesforce',
       url: 'https://careers.salesforce.com/en/jobs/?search=software+engineer&country=India&region=Karnataka&location=Bangalore&team=Software+Engineering&type=Full+time&pagesize=50#results',
+      scrape: true,
+      cooldown: 2000,
+    },
+    {
+      name: 'NVIDIA - SDE Bangalore',
+      type: 'nvidia',
+      url: 'https://nvidia.wd5.myworkdayjobs.com/NVIDIAExternalCareerSite?q=software%20engineer&locationHierarchy1=2fcb99c455831013ea52b82135ba3266&timeType=5509c0b5959810ac0029943377d47364&jobFamilyGroup=0c40f6bd1d8f10ae43ffaefd46dc7e78&workerSubType=0c40f6bd1d8f10adf6dae161b1844a15',
       scrape: true,
       cooldown: 2000,
     },
