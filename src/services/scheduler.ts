@@ -78,6 +78,8 @@ export function getScheduleDescription(): string {
     return 'Weekly on Monday at midnight';
   } else if (cronExpression === '0 8,10,13,16,19,22 * * *') {
     return '6 times a day at 8am, 10am, 1pm, 4pm, 7pm, 10pm';
+  } else if (cronExpression === '0 9,14,20 * * *') {
+    return '3 times a day at 9am, 2pm and 8pm';
   }
 
   // For more complex expressions, just return the cron expression

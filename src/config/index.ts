@@ -44,7 +44,7 @@ const HEADLESS: boolean = true;
 const OUTPUT_DIR: string = './data';
 const LOG_DIR: string = './logs';
 const LOG_LEVEL: string = 'info';
-const SCHEDULE_CRON: string = '0 8,10,13,16,19,22 * * *'; // 6 times a day at 8am, 10am, 1pm, 4pm, 7pm, 10pm
+const SCHEDULE_CRON: string = '0 9,14,20 * * *'; // 3 times a day at 9am, 2pm, and 8pm
 
 const config: Config = {
   browser: {
